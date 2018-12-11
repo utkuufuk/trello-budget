@@ -24,7 +24,7 @@ exports.transaction = functions.https.onRequest((request, response) => {
 exports.setSheet = functions.https.onRequest((request, response) => {
     db.collection('config').doc('spreadsheet').set(request.body)
     .then(snapshot => {
-        console.log("Spreadsheet ID set:", request.body['id'])
+        console.log("Spreadsheet ID set:", request.body['id']);
         return response.status(200).end();
     })
     .catch(err => {
