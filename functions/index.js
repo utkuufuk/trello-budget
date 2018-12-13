@@ -1,5 +1,6 @@
 'use strict';
 
+const {google} = require('googleapis');
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
@@ -13,11 +14,34 @@ exports.transaction = functions.https.onRequest((request, response) => {
         return response.status(400).end();
     }
 
-    // TODO: read spreadsheet ID from firestore
-    // TODO: read auth token from firestore
-
-    console.log("Card Name:", request.body.action.data.card.name);
-    return response.status(200).end();
+    let tokenPromise = db.doc('config/token').get();
+    let spreadsheetPromise = db.doc('config/spreadsheet').get();
+    return Promise.all([tokenPromise, spreadsheetPromise]).then(results => {
+        const token = results[0].data();
+        const ssheetId = results[1].data().id;
+        const client = new google.auth.OAuth2(token.client_id, token.client_secret);
+        client.setCredentials(token);
+        const sheets = google.sheets('v4');
+        return new Promise((resolve, reject) => {
+            sheets.spreadsheets.values.get({spreadsheetId: ssheetId,
+                                            auth: client,
+                                            range: "Summary!B8:E9"}, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        })
+    })
+    .then(result => {
+        console.log(result.data.values[0][0]);
+        return response.status(200).end();
+    })
+    .catch(err => {
+        console.error(err);
+        return response.status(500).end();
+    });
 });
 
 // sets the "spreadsheet" doc in "config" collection
