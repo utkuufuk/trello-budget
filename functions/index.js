@@ -8,13 +8,35 @@ var db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 db.settings(settings);
 
+function parseTransaction(cardName) {
+    let args = cardName.split(",");
+    if (args.length !== 3 && args.length !== 4) {
+        console.warn("Invalid number of fields in transaction.");
+        return null;
+    }
+    if (args.length === 3) {
+        console.log("Only 3 args were specified. Assigning today to date field.");
+        args.unshift(new Date().toISOString().split('T')[0]);
+    }
+    return args.map(s => s.trim());
+}
+
 // handles webhooks triggered by the Budget list in Trello
 exports.transaction = functions.https.onRequest((request, response) => {
-    // validate  request body
+    // validate request body
     if (!('body' in request) || !('action' in request.body) || !('type' in request.body.action)) {
         console.warn("Invalid Trello webhook request.");
         return response.status(400).end();
     }
+
+    // make sure that it's a card creation event
+    if (request.body.action.type !== 'createCard') {
+        console.log("Not a card creation event:", request.body.action.type);
+        return response.status(204).end();
+    }
+
+    let transaction = parseTransaction(request.body.action.data.card.name);
+    console.log(transaction);
 
     // retrieve auth token & spreadsheet ID from firestore
     let tokenPromise = db.doc('config/token').get();
