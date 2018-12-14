@@ -8,24 +8,30 @@ var db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 db.settings(settings);
 
+// handles webhooks triggered by the Budget list in Trello
 exports.transaction = functions.https.onRequest((request, response) => {
+    // validate  request body
     if (!('body' in request) || !('action' in request.body) || !('type' in request.body.action)) {
         console.warn("Invalid Trello webhook request.");
         return response.status(400).end();
     }
 
+    // retrieve auth token & spreadsheet ID from firestore
     let tokenPromise = db.doc('config/token').get();
     let spreadsheetPromise = db.doc('config/spreadsheet').get();
-    return Promise.all([tokenPromise, spreadsheetPromise]).then(results => {
+    return Promise.all([tokenPromise, spreadsheetPromise])
+    .then(results => {
         const token = results[0].data();
         const ssheetId = results[1].data().id;
         const client = new google.auth.OAuth2(token.client_id, token.client_secret);
         client.setCredentials(token);
-        const sheets = google.sheets('v4');
-        return new Promise((resolve, reject) => {
-            sheets.spreadsheets.values.get({spreadsheetId: ssheetId,
-                                            auth: client,
-                                            range: "Summary!B8:E9"}, (err, result) => {
+
+        // create & return a promise that reads the spreadsheet title
+        return new Promise((resolve, reject) => {google.sheets('v4').spreadsheets.values.get({
+                spreadsheetId:ssheetId,
+                auth:client,
+                range:"Summary!B8:E9"
+            }, (err, result) => {
                 if (err) {
                     reject(err);
                 } else {
