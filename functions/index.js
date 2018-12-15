@@ -8,6 +8,7 @@ var db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 db.settings(settings);
 
+// parses transaction fields from card name & assigns today if date is not specified
 function parseTransaction(cardName) {
     let args = cardName.split(",");
     if (args.length !== 3 && args.length !== 4) {
