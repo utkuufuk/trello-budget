@@ -22,6 +22,40 @@ function parseTransaction(cardName) {
     return args.map(s => s.trim());
 }
 
+// create & return a promise that reads cells from a spreadsheet
+function readCells(ssheetId, client, range) {
+    return new Promise((resolve, reject) => {
+        google.sheets('v4').spreadsheets.values.get({
+            spreadsheetId: ssheetId,
+            auth: client,
+            range: range
+        }, (err, result) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(result);
+        });
+    })
+}
+
+// create & return a promise that reads cells from a spreadsheet
+function updateCells(ssheetId, client, range, transaction) {
+    return new Promise((resolve, reject) => {
+        google.sheets('v4').spreadsheets.values.update({
+            spreadsheetId: ssheetId,
+            auth: client,
+            range: range,
+            valueInputOption: "USER_ENTERED",
+            resource: {values: [transaction]}
+        }, (err, result) => {
+            if (err) {
+                reject(err);
+            }
+            resolve(result);
+        });
+    })
+}
+
 // handles webhooks triggered by the Budget list in Trello
 exports.transaction = functions.https.onRequest((request, response) => {
     // validate request body
@@ -35,9 +69,9 @@ exports.transaction = functions.https.onRequest((request, response) => {
         console.log("Not a card creation event:", request.body.action.type);
         return response.status(204).end();
     }
-
     let transaction = parseTransaction(request.body.action.data.card.name);
-    console.log(transaction);
+    let ssheetId;
+    let client;
 
     // retrieve auth token & spreadsheet ID from firestore
     let tokenPromise = db.doc('config/token').get();
@@ -45,26 +79,22 @@ exports.transaction = functions.https.onRequest((request, response) => {
     return Promise.all([tokenPromise, spreadsheetPromise])
     .then(results => {
         const token = results[0].data();
-        const ssheetId = results[1].data().id;
-        const client = new google.auth.OAuth2(token.client_id, token.client_secret);
+        ssheetId = results[1].data().id;
+        client = new google.auth.OAuth2(token.client_id, token.client_secret);
         client.setCredentials(token);
-
-        // create & return a promise that reads the spreadsheet title
-        return new Promise((resolve, reject) => {google.sheets('v4').spreadsheets.values.get({
-                spreadsheetId:ssheetId,
-                auth:client,
-                range:"Summary!B8:E9"
-            }, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
-            });
-        })
+        return readCells(ssheetId, client, "Transactions!B5:E100");
     })
-    .then(result => {
-        console.log(result.data.values[0][0]);
+    .then(results => {
+        const rowIndex = 5 + (results.data.values ? results.data.values.length : 0);
+        const range = "Transactions!B" + rowIndex + ":E" + rowIndex;
+        const updatePromise = updateCells(ssheetId, client, range, transaction);
+        const titlePromise = readCells(ssheetId, client, "Summary!B8:E9");
+        return Promise.all([updatePromise, titlePromise]);
+    })
+    .then(results => {
+        const title = results[1].data.values[0][0];
+        const numCells = results[0].data.updatedCells;
+        console.log(`${numCells} cells updated in ${title} budget: ${transaction}`);
         return response.status(200).end();
     })
     .catch(err => {
