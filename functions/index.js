@@ -35,7 +35,7 @@ function readCells(ssheetId, client, range) {
             }
             resolve(result);
         });
-    })
+    });
 }
 
 // create & return a promise that reads cells from a spreadsheet
@@ -53,7 +53,7 @@ function updateCells(ssheetId, client, range, transaction) {
             }
             resolve(result);
         });
-    })
+    });
 }
 
 // handles webhooks triggered by the Budget list in Trello
