@@ -9,12 +9,12 @@
          },
          "card": {
             "idShort":1458,
-            "name":"Webhooks",
+            "name":"100, Trip to İstanbul, Travel",
             "id":"51a79e72dbb7e23c7c003778"
          },
          "voted":true
       },
-      "type":"voteOnCard",
+      "type":"createCard",
       "date":"2013-07-31T16:58:51.949Z",
       "memberCreator": {
          "id":"4fc78a59a885233f4b349bd9",
