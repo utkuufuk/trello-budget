@@ -1,8 +1,11 @@
 import sys
 import json
 import requests
+from requests.auth import HTTPBasicAuth
 
 LOCAL_PORT = 5000
+USERNAME = "utku"
+PASSWORD = "ilikebananas"
 
 def extractId(url):
     start = url.find("spreadsheets/d/")
@@ -25,5 +28,5 @@ if __name__ == "__main__":
     [_, endpoint, function, arg] = sys.argv
     url = (localEndpoint if (endpoint == 'local') else remoteEndpoint) + function
     payload = {'id': extractId(arg)} if function == 'setSheet' else json.load(open(arg))
-    req = requests.post(url, json=payload)
+    req = requests.post(url, auth=HTTPBasicAuth(USERNAME, PASSWORD), json=payload)
     print("Server returned status code:", req.status_code)
