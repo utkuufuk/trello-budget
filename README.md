@@ -1,15 +1,17 @@
-# budget-trello
+# Trello Budget
 Quickly insert transactions in your budget spreadsheet by creating a Trello card.
 
-### Installation & Configuration
+### Walkthrough
+Check out the [YouTube playlist](https://www.youtube.com/playlist?list=PL36SguL4LIwmJTYLlnCMXG5Azrpezm4h1) for a complete walkthrough on building this project.
 
+### Installation & Configuration
 #### Generate Auth Token for Spreadsheets 
-1. Install [pip](https://pypi.org/project/pip/)
-2. `pip install --upgrade google-api-python-client oauth2client`
-3. Follow [quickstart guide step 1](https://developers.google.com/sheets/api/quickstart/python#step_1_turn_on_the) to create a console project, enable the Google Sheets API and download your credentials.
+1. [Create a new Firebase project](https://console.firebase.google.com/) called `budget.`
+2. `pip3 install --upgrade google-api-python-client oauth2client`
+3. Follow [quickstart guide step 1](https://developers.google.com/sheets/api/quickstart/python#step_1_turn_on_the) to enable the Google Sheets API and download credentials for your Firebase budget project .
 4. Copy the `credentials.json` file in project directory and run the following to generate `token.json`:
     ``` sh
-    python createtoken.py
+    python3 createtoken.py
     ```
 
 #### Set Up the Firebase CLI
@@ -19,8 +21,7 @@ Quickly insert transactions in your budget spreadsheet by creating a Trello card
 
 #### Initialize Firebase SDK for Cloud Functions
 1. Run `firebase login` to authenticate the firebase tool.
-2. From [Firebase project console](https://console.firebase.google.com), select *Create a New Project*, and then add Firebase to your existing Google Spreadsheet project. 
-3. Set your Firebase project ID in [`.firebaserc:`](.firebaserc) 
+2. Make sure that your Firebase project name & ID are correctly configured in [`.firebaserc:`](.firebaserc) 
     ``` json
     {
         "projects": {
@@ -39,7 +40,6 @@ Set the following fields in [`webhook.sh`](webhook.sh) & run it to create a Trel
 ``` sh
 ./webhook.sh
 ```
-Refer to [developer page](https://developers.trello.com/page/webhooks) for more info.
 
 ### Serve Locally or Deploy to Cloud
 Serve functions locally without deploying functions to cloud:
@@ -64,25 +64,25 @@ firebase deploy --only functions
 #### Local Endpoint 
 ``` sh
 # set spreadsheet ID by URL
-python post.py local setSheet <SPREADSHEET_URL>
+python3 post.py local setSheet <SPREADSHEET_URL>
 
 # set auth token
-python post.py local setToken token.json
+python3 post.py local setToken token.json
 
 # make a transaction request
-python post.py local transaction trello.json
+python3 post.py local transaction trello.json
 ```
 
 #### Remote Endpoint
 ``` sh
 # set spreadsheet ID by URL
-python post.py remote setSheet <SPREADSHEET_URL>
+python3 post.py remote setSheet <SPREADSHEET_URL>
 
 # set auth token
-python post.py remote setToken token.json
+python3 post.py remote setToken token.json
 
 # make a transaction request
-python post.py remote transaction trello.json
+python3 post.py remote transaction trello.json
 ```
 
 ### References
