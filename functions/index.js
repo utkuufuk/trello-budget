@@ -108,10 +108,7 @@ function authorizeUser(request, response, callback) {
     let creds = (new Buffer(request.headers.authorization.split(" ")[1], 'base64')).toString().split(":");
     db.doc('config/auth').get()
     .then(snapshot => {
-        return (snapshot.data().username === creds[0] && snapshot.data().password === creds[1]);
-    })
-    .then(authorized => {
-        if (!authorized) {
+        if (snapshot.data().username !== creds[0] || snapshot.data().password !== creds[1]) {
             console.warn("Incorrect username & password.");
             return response.status(403).end();
         }
