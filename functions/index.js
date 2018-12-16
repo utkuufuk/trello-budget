@@ -103,28 +103,52 @@ exports.transaction = functions.https.onRequest((request, response) => {
     });
 });
 
-// sets the "spreadsheet" doc in "config" collection
-exports.setSheet = functions.https.onRequest((request, response) => {
-    db.collection('config').doc('spreadsheet').set(request.body)
+// executes a callback only if the request authorization headers are valid
+function authorizeUser(request, response, callback) {
+    let creds = (new Buffer(request.headers.authorization.split(" ")[1], 'base64')).toString().split(":");
+    db.doc('config/auth').get()
     .then(snapshot => {
-        console.log("Spreadsheet ID set:", request.body['id']);
-        return response.status(200).end();
+        return (snapshot.data().username === creds[0] && snapshot.data().password === creds[1]);
+    })
+    .then(authorized => {
+        if (!authorized) {
+            console.warn("Incorrect username & password.");
+            return response.status(403).end();
+        }
+        return callback();
     })
     .catch(err => {
         console.error(err);
         return response.status(500).end();
+    })
+}
+
+// sets the "spreadsheet" doc in "config" collection
+exports.setSheet = functions.https.onRequest((request, response) => {
+    authorizeUser(request, response, () => {
+        db.collection('config').doc('spreadsheet').set(request.body)
+        .then(snapshot => {
+            console.log("Spreadsheet ID set:", request.body['id']);
+            return response.status(200).end();
+        })
+        .catch(err => {
+            console.error(err);
+            return response.status(500).end();
+        });
     });
 });
 
 // sets the "token" doc in "config" collection
 exports.setToken = functions.https.onRequest((request, response) => {
-    db.collection('config').doc('token').set(request.body)
-    .then(snapshot => {
-        console.log("Auth token set.");
-        return response.status(200).end();
-    })
-    .catch(err => {
-        console.error(err);
-        return response.status(500).end();
+    authorizeUser(request, response, () => {
+        db.collection('config').doc('token').set(request.body)
+        .then(snapshot => {
+            console.log("Auth token set.");
+            return response.status(200).end();
+        })
+        .catch(err => {
+            console.error(err);
+            return response.status(500).end();
+        });
     });
 });
