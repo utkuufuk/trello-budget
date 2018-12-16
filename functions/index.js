@@ -38,7 +38,7 @@ function readCells(ssheetId, client, range) {
     });
 }
 
-// create & return a promise that reads cells from a spreadsheet
+// create & return a promise that updates cells in a spreadsheet
 function updateCells(ssheetId, client, range, transaction) {
     return new Promise((resolve, reject) => {
         google.sheets('v4').spreadsheets.values.update({
