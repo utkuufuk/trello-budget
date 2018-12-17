@@ -54,7 +54,8 @@ firebase deploy --only functions
 ```
 
 ### Invoke Functions
- * Create a new collection called `config` in your Cloud Firestore and create a document called `auth` in it. Then set your username & password in it as shown below:
+ * Create a new collection called `config` in your Cloud Firestore and create a document called `auth` in it.
+ * Set your username, password & [trello secret](https://trello.com/app-key) in it as shown below:
 
  ![Auth Doc](auth.png)
 
