@@ -9,7 +9,8 @@ var db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 db.settings(settings);
 
-const TRELLO_CALLBACK_URL = "https://us-central1-" + process.env.GCLOUD_PROJECT + ".cloudfunctions.net/transaction"
+// callback URL of Trello webhook requests
+const TRELLO_CALLBACK_URL = "https://us-central1-" + process.env.GCLOUD_PROJECT + ".cloudfunctions.net/transaction";
 
 // parses transaction fields from card name & assigns today if date is not specified
 function parseTransaction(cardName) {
