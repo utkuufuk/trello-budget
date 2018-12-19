@@ -66,5 +66,6 @@ node_modules/
 
 credentials.json
 token.json
+auth.json
 
 .vscode
