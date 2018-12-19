@@ -59,7 +59,13 @@ firebase deploy --only functions
 
  ![Auth Doc](auth.png)
 
- * Also modify `USERNAME` and `PASSWORD` in [`post.py`](post.py) accordingly.
+ * Also create an `auth.json` file in the project directory and set the same username & password in it as well:
+    ``` json
+    {  
+        "username":"utku",
+        "password":"ilikebananas"
+    }
+    ```
  * Finally make sure to set `LOCAL_PORT` correctly in [`post.py`](post.py) while serving functions locally.
 
 #### Local Endpoint 
