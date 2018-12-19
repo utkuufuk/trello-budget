@@ -62,16 +62,16 @@ function updateCells(ssheetId, client, range, transaction) {
 
 // verifies that the webhook request originated from Trello 
 function verifyTrelloWebhookRequest(request, secret) {
-  var base64Digest = function (s) {
-    return crypto.createHmac('sha1', secret).update(s).digest('base64');
-  }
-  if (!("x-trello-webhook" in request.headers)) {
-      return false;
-  }
-  var content = JSON.stringify(request.body) + TRELLO_CALLBACK_URL;
-  var doubleHash = base64Digest(content);
-  var headerHash = request.headers['x-trello-webhook'];
-  return doubleHash === headerHash;
+    var base64Digest = function (s) {
+        return crypto.createHmac('sha1', secret).update(s).digest('base64');
+    }
+    if (!("x-trello-webhook" in request.headers)) {
+        return false;
+    }
+    var content = JSON.stringify(request.body) + TRELLO_CALLBACK_URL;
+    var doubleHash = base64Digest(content);
+    var headerHash = request.headers['x-trello-webhook'];
+    return doubleHash === headerHash;
 }
 
 // handles webhooks triggered by the Budget list in Trello
