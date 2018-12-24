@@ -3,7 +3,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
-LOCAL_PORT = 5000
+LOCAL_PORT = 5002
 
 def extractId(url):
     start = url.find("spreadsheets/d/")
@@ -20,10 +20,10 @@ if __name__ == "__main__":
     localEndpoint = "http://localhost:" + str(LOCAL_PORT) + "/" + appId + "/us-central1/"
     remoteEndpoint = "https://us-central1-" + appId + ".cloudfunctions.net/"
 
-    # read client id & secret from credentials.json to use in HTTP request auth header
-    auth = json.load(open('auth.json'))
-    username = auth["username"]
-    password = auth["password"]
+    # read admin username & password from configuration file to use in HTTP request auth header
+    auth = json.load(open('functions/.runtimeconfig.json'))
+    username = auth["admin"]["username"]
+    password = auth["admin"]["password"]
 
     # read arguments & make a post request
     [_, endpoint, function, arg] = sys.argv
