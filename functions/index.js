@@ -94,13 +94,11 @@ exports.transaction = functions.https.onRequest((request, response) => {
     // retrieve auth token & spreadsheet ID from firestore
     let tokenPromise = db.doc('config/token').get();
     let spreadsheetPromise = db.doc('config/spreadsheet').get();
-    let secretPromise = db.doc('config/auth').get();
-    return Promise.all([tokenPromise, spreadsheetPromise, secretPromise])
+    return Promise.all([tokenPromise, spreadsheetPromise])
     .then(results => {
         const token = results[0].data();
         ssheetId = results[1].data().id;
-        const secret = results[2].data()["trello-secret"];
-        if (!verifyTrelloWebhookRequest(request, secret)) {
+        if (!verifyTrelloWebhookRequest(request, functions.config().trello.secret)) {
             response.status(403).end();
             throw new Error("Invalid or unauthorized Trello webhook request."); 
         }
@@ -130,18 +128,11 @@ exports.transaction = functions.https.onRequest((request, response) => {
 // executes a callback only if the request authorization headers are valid
 function authorizeUser(request, response, callback) {
     let creds = (new Buffer(request.headers.authorization.split(" ")[1], 'base64')).toString().split(":");
-    db.doc('config/auth').get()
-    .then(snapshot => {
-        if (snapshot.data().username !== creds[0] || snapshot.data().password !== creds[1]) {
-            console.warn("Incorrect username & password.");
-            return response.status(403).end();
-        }
-        return callback();
-    })
-    .catch(err => {
-        console.error(err);
-        return response.status(500).end();
-    })
+    if (functions.config().admin.username !== creds[0] || functions.config().admin.password !== creds[1]) {
+        console.warn("Incorrect username & password.");
+        return response.status(403).end();
+    }
+    return callback();
 }
 
 // sets the "spreadsheet" doc in "config" collection
