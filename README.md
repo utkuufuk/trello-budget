@@ -41,6 +41,27 @@ Set the following fields in [`webhook.sh`](webhook.sh) & run it to create a Trel
 ./webhook.sh
 ```
 
+#### Configure
+ * Create a new collection called `config` in your Cloud Firestore and create a document called `auth` in it.
+ * Set your username, password & [trello secret](https://trello.com/app-key) in your environment configuration:
+    ``` sh
+    # set admin username & password
+    firebase functions:config:set admin.username="utku" admin.password="ilikebananas"
+
+    # set trello secret
+    firebase functions:config:set trello.secret="<YOUR_TRELLO_SECRET>"
+    ```
+ * Also create an `.runtimeconfig.json` file inside `functions` directory and set the same username & password in it as well:
+    ``` json
+    {
+        "admin": {
+            "username": "utku",
+            "password": "ilikebananas"
+        }
+    }
+    ```
+ * Finally make sure to set `LOCAL_PORT` correctly in [`post.py`](post.py) while serving functions locally.
+
 ### Serve Locally or Deploy to Cloud
 Serve functions locally without deploying functions to cloud:
 ``` sh
@@ -54,20 +75,6 @@ firebase deploy --only functions
 ```
 
 ### Invoke Functions
- * Create a new collection called `config` in your Cloud Firestore and create a document called `auth` in it.
- * Set your username, password & [trello secret](https://trello.com/app-key) in it as shown below:
-
- ![Auth Doc](auth.png)
-
- * Also create an `auth.json` file in the project directory and set the same username & password in it as well:
-    ``` json
-    {  
-        "username":"utku",
-        "password":"ilikebananas"
-    }
-    ```
- * Finally make sure to set `LOCAL_PORT` correctly in [`post.py`](post.py) while serving functions locally.
-
 #### Local Endpoint 
 ``` sh
 # set spreadsheet ID by URL
@@ -96,5 +103,6 @@ python3 post.py remote transaction trello.json
  * [Trello Webhooks Guide](https://developers.trello.com/page/webhooks)
  * [Trello Webhooks Reference](https://developers.trello.com/reference#webhooks)
  * [Firebase Cloud Functions Guide](https://firebase.google.com/docs/functions/get-started)
+ * [Environment Configuration](https://firebase.google.com/docs/functions/config-env)
  * [Google Spreadsheets API](https://developers.google.com/sheets/api/quickstart/nodejs)
  * [Express API](http://expressjs.com/en/4x/api.html)
