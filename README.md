@@ -51,7 +51,7 @@ Set the following fields in [`webhook.sh`](webhook.sh) & run it to create a Trel
     # set trello secret
     firebase functions:config:set trello.secret="<YOUR_TRELLO_SECRET>"
     ```
- * Also create an `.runtimeconfig.json` file inside `functions` directory and set the same username & password in it as well:
+ * Also create an `.runtimeconfig.json` file inside [`functions`](functions) directory and set the same username & password in it as well:
     ``` json
     {
         "admin": {
