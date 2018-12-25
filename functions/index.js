@@ -76,6 +76,11 @@ function verifyTrelloWebhookRequest(request, secret) {
 
 // handles webhooks triggered by the Budget list in Trello
 exports.transaction = functions.https.onRequest((request, response) => {
+    // HEAD request on webhook creation only (https://developers.trello.com/page/webhooks)
+    if (request.method === 'HEAD') {
+        return response.status(200).end();
+    }
+    
     // validate request body
     if (!('body' in request) || !('action' in request.body) || !('type' in request.body.action)) {
         console.warn("Invalid Trello webhook request.");
