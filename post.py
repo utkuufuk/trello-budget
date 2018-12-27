@@ -30,4 +30,4 @@ if __name__ == "__main__":
     url = (localEndpoint if (endpoint == 'local') else remoteEndpoint) + function
     payload = {'id': extractId(arg)} if function == 'setSheet' else json.load(open(arg))
     req = requests.post(url, auth=HTTPBasicAuth(username, password), json=payload)
-    print("Server returned status code:", req.status_code)
+    print("Server response:", req.status_code, "\n" + req.text)

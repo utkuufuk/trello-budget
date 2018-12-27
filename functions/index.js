@@ -9,12 +9,12 @@ var db = admin.firestore();
 const settings = {timestampsInSnapshots: true};
 db.settings(settings);
 
-// callback URL of Trello webhook requests
-const TRELLO_CALLBACK_URL = "https://us-central1-" + process.env.GCLOUD_PROJECT + ".cloudfunctions.net/transaction";
+// root URL of Trello webhook request callbacks
+const TRELLO_CALLBACK_ROOT = `https://us-central1-${process.env.GCP_PROJECT}.cloudfunctions.net/`;
 
 // parses transaction fields from card name & assigns today if date is not specified
 function parseTransaction(cardName) {
-    let args = cardName.split(",");
+    const args = cardName.split(",");
     if (args.length !== 3 && args.length !== 4) {
         console.warn("Invalid number of fields in transaction.");
         return null;
@@ -68,7 +68,7 @@ function verifyTrelloWebhookRequest(request, secret) {
     if (!("x-trello-webhook" in request.headers)) {
         return false;
     }
-    var content = JSON.stringify(request.body) + TRELLO_CALLBACK_URL;
+    var content = JSON.stringify(request.body) + TRELLO_CALLBACK_ROOT + process.env.FUNCTION_NAME;
     var doubleHash = base64Digest(content);
     var headerHash = request.headers['x-trello-webhook'];
     return doubleHash === headerHash;
@@ -76,7 +76,7 @@ function verifyTrelloWebhookRequest(request, secret) {
 
 // handles webhooks triggered by the Budget list in Trello
 exports.transaction = functions.https.onRequest((request, response) => {
-    // HEAD request on webhook creation only (https://developers.trello.com/page/webhooks)
+    // return success code to HEAD requests on webhook creation
     if (request.method === 'HEAD') {
         return response.status(200).end();
     }
@@ -92,13 +92,12 @@ exports.transaction = functions.https.onRequest((request, response) => {
         console.log("Not a card creation event:", request.body.action.type);
         return response.status(204).end();
     }
-    let transaction = parseTransaction(request.body.action.data.card.name);
-    let ssheetId;
-    let client;
+    const transaction = parseTransaction(request.body.action.data.card.name);
+    let ssheetId, client;
 
     // retrieve auth token & spreadsheet ID from firestore
-    let tokenPromise = db.doc('config/token').get();
-    let spreadsheetPromise = db.doc('config/spreadsheet').get();
+    const tokenPromise = db.doc('config/token').get();
+    const spreadsheetPromise = db.doc('config/spreadsheet').get();
     return Promise.all([tokenPromise, spreadsheetPromise])
     .then(results => {
         const token = results[0].data();
@@ -132,8 +131,10 @@ exports.transaction = functions.https.onRequest((request, response) => {
 
 // executes a callback only if the request authorization headers are valid
 function authorizeUser(request, response, callback) {
-    let creds = (new Buffer(request.headers.authorization.split(" ")[1], 'base64')).toString().split(":");
-    if (functions.config().admin.username !== creds[0] || functions.config().admin.password !== creds[1]) {
+    const authHeader = new Buffer(request.headers.authorization.split(" ")[1], 'base64');
+    const creds = authHeader.toString().split(":");
+    if (functions.config().admin.username !== creds[0] || 
+        functions.config().admin.password !== creds[1]) {
         console.warn("Incorrect username & password.");
         return response.status(403).end();
     }
