@@ -87,9 +87,9 @@ exports.transaction = functions.https.onRequest((request, response) => {
         return response.status(400).end();
     }
 
-    // make sure that it's a card creation event
-    if (request.body.action.type !== 'createCard') {
-        console.log("Not a card creation event:", request.body.action.type);
+    // make sure that it's a card creation or copy event
+    if (request.body.action.type !== 'createCard' && request.body.action.type !== 'copyCard') {
+        console.log("Not a card creation or copy event:", request.body.action.type);
         return response.status(204).end();
     }
     const transaction = parseTransaction(request.body.action.data.card.name);
