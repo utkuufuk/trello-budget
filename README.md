@@ -8,7 +8,7 @@ Check out the [YouTube playlist](https://www.youtube.com/playlist?list=PL36SguL4
 #### Generate Auth Token for Spreadsheets 
 1. [Create a new Firebase project](https://console.firebase.google.com/) called `budget.`
 2. `pip3 install --upgrade google-api-python-client oauth2client`
-3. Follow [quickstart guide step 1](https://developers.google.com/sheets/api/quickstart/python#step_1_turn_on_the) to enable the Google Sheets API and download credentials for your Firebase budget project .
+3. Follow [quickstart guide step 1](https://developers.google.com/sheets/api/quickstart/python#step_1_turn_on_the) to enable the Google Sheets API and download credentials for your Firebase budget project.
 4. Copy the `credentials.json` file in project directory and run the following to generate `token.json`:
     ``` sh
     python3 createtoken.py
@@ -32,17 +32,21 @@ Check out the [YouTube playlist](https://www.youtube.com/playlist?list=PL36SguL4
  * Run `npm install` from the [`functions`](functions)  directory.
 
 #### Create a Trello Webhook
-Set the following fields in [`webhook.sh`](webhook.sh) & run it to create a Trello webhook:
- * `APIToken`
- * `APIKey`
- * `CallbackURL`
- * `ModelID`
-``` sh
-./webhook.sh
-```
+ 1. Create a new board and 12 lists inside it for each month (Jan, Feb, Mar, ...)
+ 2. Set the following fields in [`webhook.sh`](webhook.sh) & run it to create a Trello webhook for your budget board:
+    * `APIToken`
+    * `APIKey`
+    * `CallbackURL`
+    * `ModelID`
+    ``` sh
+    ./webhook.sh
+    ```
 
 #### Configure
- * Create a new collection called `config` in your Cloud Firestore and create a document called `auth` in it.
+ * Create 12 monthly budget spreadsheets to keep track of each month and take note of corresponding spreadsheet IDs.
+ * Create a new collection called `config` in your Cloud Firestore and create a document called `spreadsheet` in it.
+ * Add 12 fields inside the `spreadsheet` document for each spreadsheet ID as follows: 
+  ![Spreadsheet IDs](spreadsheet_ids.png)
  * Set your username, password & [trello secret](https://trello.com/app-key) in your environment configuration:
     ``` sh
     # set admin username & password
@@ -77,9 +81,6 @@ firebase deploy --only functions
 ### Invoke Functions
 #### Local Endpoint 
 ``` sh
-# set spreadsheet ID by URL
-python3 post.py local setSheet <SPREADSHEET_URL>
-
 # set auth token
 python3 post.py local setToken token.json
 
@@ -89,9 +90,6 @@ python3 post.py local transaction trello.json
 
 #### Remote Endpoint
 ``` sh
-# set spreadsheet ID by URL
-python3 post.py remote setSheet <SPREADSHEET_URL>
-
 # set auth token
 python3 post.py remote setToken token.json
 

@@ -13,15 +13,19 @@ db.settings(settings);
 const TRELLO_CALLBACK_ROOT = `https://us-central1-${process.env.GCP_PROJECT}.cloudfunctions.net/`;
 
 // parses transaction fields from card name & assigns today if date is not specified
-function parseTransaction(cardName) {
+function parseTransaction(cardName, month) {
     const args = cardName.split(",");
     if (args.length !== 3 && args.length !== 4) {
         console.warn("Invalid number of fields in transaction.");
         return null;
     }
+
     if (args.length === 3) {
         console.log("Only 3 args were specified. Assigning today to date field.");
         args.unshift(new Date().toISOString().split('T')[0]);
+    }
+    else {
+        args[0] = month + " " + args[0];
     }
     return args.map(s => s.trim());
 }
@@ -92,7 +96,8 @@ exports.transaction = functions.https.onRequest((request, response) => {
         console.log("Not a card creation or copy event:", request.body.action.type);
         return response.status(204).end();
     }
-    const transaction = parseTransaction(request.body.action.data.card.name);
+    const month = request.body.action.data.list.name.toLowerCase();
+    const transaction = parseTransaction(request.body.action.data.card.name, month);
     let ssheetId, client;
 
     // retrieve auth token & spreadsheet ID from firestore
@@ -101,7 +106,7 @@ exports.transaction = functions.https.onRequest((request, response) => {
     return Promise.all([tokenPromise, spreadsheetPromise])
     .then(results => {
         const token = results[0].data();
-        ssheetId = results[1].data().id;
+        ssheetId = results[1].data()[month];
         if (!verifyTrelloWebhookRequest(request, functions.config().trello.secret)) {
             response.status(403).end();
             throw new Error("Invalid or unauthorized Trello webhook request."); 
@@ -140,21 +145,6 @@ function authorizeUser(request, response, callback) {
     }
     return callback();
 }
-
-// sets the "spreadsheet" doc in "config" collection
-exports.setSheet = functions.https.onRequest((request, response) => {
-    authorizeUser(request, response, () => {
-        db.collection('config').doc('spreadsheet').set(request.body)
-        .then(snapshot => {
-            console.log("Spreadsheet ID set:", request.body['id']);
-            return response.status(200).end();
-        })
-        .catch(err => {
-            console.error(err);
-            return response.status(500).end();
-        });
-    });
-});
 
 // sets the "token" doc in "config" collection
 exports.setToken = functions.https.onRequest((request, response) => {
